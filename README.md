@@ -44,6 +44,56 @@ JS! Hooray!
 That's it?!
 ```
 
+Parsing a whole document into an object:
+```javascript
+import htmlparser from 'htmlparser2';
+
+const handler = new htmlparser.DomHandler();
+const parser = new htmlparser.Parser(handler);
+parser.parseComplete("Xyz <script type='text/javascript'>var foo = '<<bar>>';</ script>");
+// Remove circular references inherent in dom
+console.log(JSON.stringify(handler.dom, domCircularReplacer, 2));
+
+function domCircularReplacer(key, value) {
+    if (value && (key === 'prev' || key === 'next' || key === 'parent')) {
+        return '[Circular]';
+    }
+    return value;
+}
+```
+
+Output:
+```
+[
+  {
+    "data": "Xyz ",
+    "type": "text",
+    "next": "[Circular]",
+    "prev": null,
+    "parent": null
+  },
+  {
+    "type": "script",
+    "name": "script",
+    "attribs": {
+      "type": "text/javascript"
+    },
+    "children": [
+      {
+        "data": "var foo = '<<bar>>';",
+        "type": "text",
+        "next": null,
+        "prev": null,
+        "parent": "[Circular]"
+      }
+    ],
+    "next": null,
+    "prev": "[Circular]",
+    "parent": null
+  }
+]
+```
+
 ## Documentation
 
 Read more about the parser and its options in the [wiki](https://github.com/fb55/htmlparser2/wiki/Parser-options).
